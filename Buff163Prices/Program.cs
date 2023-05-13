@@ -24,7 +24,7 @@ namespace Buff163Prices
                 if (itemID != null)
                 {
                     double itemPrice = GetPrice(itemID);
-                    Console.WriteLine($"{itemName}: {itemPrice} ({(itemPrice * conversion).ToString("C2")})");
+                    Console.WriteLine($"{itemName}: {itemPrice}¥ ({(itemPrice * conversion).ToString("C2")})");
                 }
                 else
                 {
