@@ -3,39 +3,49 @@ using System.IO;
 using System.Text;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using System.Threading;
+using System.Globalization;
 
 namespace Buff163Prices
 {
     class Program
     {
-        private static readonly double conversion = 11.2271715;
+        private static CultureInfo currentCulture = CultureInfo.CurrentCulture;
+        private static RegionInfo regionInfo = new RegionInfo(currentCulture.LCID);
+
         private static readonly string url = "https://buff.163.com/api/market/goods/sell_order?game=csgo&goods_id=";
+        private static readonly string val = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/cny/";
 
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            string[] itemNames = { "Stockholm 2021 Legends Sticker Capsule", "Stockholm 2021 Contenders Sticker Capsule", "Stockholm 2021 Challengers Sticker Capsule" };
-
-            foreach (string itemName in itemNames)
+            using (StreamReader reader = new StreamReader("Items.txt"))
             {
-                string itemID = FindId(itemName, "IDs.txt");
+                while (!reader.EndOfStream)
+                {
+                    string item = reader.ReadLine();
+                    string id = FindId(item, "IDs.txt");
 
-                if (itemID != null)
-                {
-                    double itemPrice = GetPrice(itemID);
-                    Console.WriteLine($"{itemName}: {itemPrice}¥ ({(itemPrice * conversion).ToString("C2")})");
-                }
-                else
-                {
-                    Console.WriteLine($"{itemName} not found.");
+                    if (id != null)
+                    {
+                        double itemPrice = GetPrice(id);
+                        double converted = Math.Round(itemPrice * GetConversion(), 2);
+
+                        Console.WriteLine($"{item}: {itemPrice}¥ ({converted + regionInfo.CurrencySymbol})");
+                        Thread.Sleep(3000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{item} not found.");
+                    }
                 }
             }
 
             Console.ReadKey();
         }
 
-        static string FindId(string itemName, string filePath)
+        private static string FindId(string itemName, string filePath)
         {
             using (StreamReader reader = new StreamReader(filePath))
             {
@@ -54,16 +64,30 @@ namespace Buff163Prices
             return null;
         }
 
-        static double GetPrice(string id)
+        private static double GetPrice(string id)
         {
             using (HttpClient client = new HttpClient())
             {
-                string responseString = client.GetStringAsync(url + id).Result;
-                JObject responseJson = JObject.Parse(responseString);
-                JObject dataJson = responseJson["data"]["items"][0] as JObject;
-                double price = (double)dataJson["price"];
+                string response = client.GetStringAsync(url + id).Result;
+                JObject json = JObject.Parse(response);
+                JObject data = json["data"]["items"][0] as JObject;
+                double price = (double)data["price"];
 
                 return price;
+            }
+        }
+
+        private static double GetConversion()
+        {
+            string currency = regionInfo.ISOCurrencySymbol.ToLower();
+
+            using (HttpClient client = new HttpClient())
+            {
+                string response = client.GetStringAsync(val + currency + ".json").Result;
+                JObject json = JObject.Parse(response);
+                double rate = (double)json[currency];
+
+                return rate;
             }
         }
     }
