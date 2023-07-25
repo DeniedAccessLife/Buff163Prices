@@ -10,8 +10,8 @@ namespace Buff163Prices
 {
     class Program
     {
-        private static CultureInfo currentCulture = CultureInfo.CurrentCulture;
-        private static RegionInfo regionInfo = new RegionInfo(currentCulture.LCID);
+        private static readonly CultureInfo currentCulture = CultureInfo.CurrentCulture;
+        private static readonly RegionInfo regionInfo = new RegionInfo(currentCulture.Name);
 
         private static readonly string url = "https://buff.163.com/api/market/goods/sell_order?game=csgo&goods_id=";
         private static readonly string val = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/cny/";
