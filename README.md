@@ -1,5 +1,5 @@
 # Buff163Prices
-A program for getting current prices for Buff163 service items.
+Program for getting current prices for Buff163 items.
 
 # View
 Window of the program.
